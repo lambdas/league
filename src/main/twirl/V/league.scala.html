@@ -1,0 +1,24 @@
+@(teams: Seq[models.Team])
+<!DOCTYPE html>
+<html>
+<head>
+    <title>League</title>
+</head>
+<body>
+<h1>League</h1>
+<table>
+    <thead>
+    <tr>
+        <td>Name</td>
+    </tr>
+    </thead>
+    <tbody>
+        @teams.map { team =>
+            <tr>
+                <td>@team.name</td>
+            </tr>
+        }
+    </tbody>
+</table>
+</body>
+</html>
