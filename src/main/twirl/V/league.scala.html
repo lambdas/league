@@ -1,4 +1,4 @@
-@(teams: Seq[models.Team])
+@(stats: Map[Team, WLStats])
 <!DOCTYPE html>
 <html>
 <head>
@@ -10,12 +10,18 @@
     <thead>
     <tr>
         <td>Name</td>
+        <td>Wins</td>
+        <td>Losses</td>
+        <td>?</td>
     </tr>
     </thead>
     <tbody>
-        @teams.map { team =>
+        @stats.map { case (team, stats) =>
             <tr>
                 <td>@team.name</td>
+                <td>@stats.nWins</td>
+                <td>@stats.nLosses</td>
+                <td>@stats.nHidden</td>
             </tr>
         }
     </tbody>
