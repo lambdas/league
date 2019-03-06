@@ -1,14 +1,14 @@
 package lambdas.league.views
 
 import lambdas.league.models.{Team, WLStats}
-import lambdas.league.utils
+import lambdas.league.testutils.allTeamNames
 import org.scalatest._
 
 class LeagueSpec extends FlatSpec with Matchers {
   "league page" should "have a table with all the teams" in {
-    val stats = utils.allTeamNames.map(Team(_) -> WLStats.zero).toMap
+    val stats = allTeamNames.map(Team(_) -> WLStats.zero).toMap
     val html = V.html.league(stats).toString
-    utils.allTeamNames.foreach { name => html should include(name) }
+    allTeamNames.foreach { name => html should include(name) }
   }
 
   it should "display team wins/loses statistics" in {
