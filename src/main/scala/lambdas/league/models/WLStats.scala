@@ -1,6 +1,9 @@
 package lambdas.league.models
 
+import cats.instances.map._
+import cats.instances.set._
 import cats.kernel.CommutativeMonoid
+import cats.syntax.foldable._
 import io.circe._
 import io.circe.generic.semiauto._
 
@@ -14,6 +17,8 @@ object WLStats {
     val roadWin = r.roadScore > r.homeScore
     Map(r.roadTeam -> WLStats(roadWin, r.hidden), r.homeTeam -> WLStats(!roadWin, r.hidden))
   }
+
+  def fromResults(results: Set[GameResult]): Map[Team, WLStats] = results.unorderedFoldMap(fromResult)
 
   val zero: WLStats = WLStats(0, 0, 0)
 

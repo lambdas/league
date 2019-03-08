@@ -19,7 +19,7 @@ object Server extends StreamApp[IO] {
 
   private val getTeams = Kleisli[IO, Unit, Set[Team]] { _ =>
     IO.pure(Set(
-      "Atlanta Hawks",
+      "ATL",
       "Boston Celtics",
       "Brooklyn Nets",
       "Charlotte Hornets",

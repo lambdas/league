@@ -5,7 +5,7 @@ import java.time.LocalDate
 import cats.syntax.monoid._
 import io.circe.literal._
 import io.circe.syntax._
-import lambdas.league.models.WLStats.{fromResult, zero}
+import lambdas.league.models.WLStats.{fromResult, fromResults, zero}
 import org.scalatest.{FlatSpec, Matchers}
 
 class WLStatsSpec extends FlatSpec with Matchers {
@@ -40,6 +40,18 @@ class WLStatsSpec extends FlatSpec with Matchers {
         true)) shouldBe Map(
       Team("Atlanta Hawks") -> WLStats(0, 0, 1),
       Team("Miami Heat") -> WLStats(0, 0, 1))
+  }
+
+  "fromResults" should "aggregate game results into stats" in {
+    val events = Set(
+      GameResult(Team("Atlanta Hawks"), Team("Miami Heat"),     100, 110, LocalDate.of(2019, 1, 1), false),
+      GameResult(Team("Atlanta Hawks"), Team("Boston Celtics"), 100, 110, LocalDate.of(2019, 1, 2), false),
+      GameResult(Team("Atlanta Hawks"), Team("Denver Nuggets"), 100, 110, LocalDate.of(2019, 1, 2), true))
+    fromResults(events) shouldBe Map(
+      Team("Atlanta Hawks")  -> WLStats(0, 2, 1),
+      Team("Miami Heat")     -> WLStats(1, 0, 0),
+      Team("Boston Celtics") -> WLStats(1, 0, 0),
+      Team("Denver Nuggets") -> WLStats(0, 0, 1))
   }
 
   "zero" should "provide null stats" in {
