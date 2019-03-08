@@ -22,12 +22,11 @@ object TeamsService {
 
   def response[F[_]: Monad, A: EntityEncoder[F, ?]](getTeams: Kleisli[F, Unit, Set[Team]],
                                                     getWLStats: Kleisli[F, Team, WLStats],
-                                                    render: Map[Team, WLStats] => A): F[Response[F]] = {
+                                                    render: Map[Team, WLStats] => A): F[Response[F]] =
     getTeams
       .map(_.toList)
       .flatMapF(getWLStats.tapWith(_ -> _).traverse(_))
       .map(_.toMap)
       .flatMapF(render(_).ok[F])
       .run(())
-  }
 }

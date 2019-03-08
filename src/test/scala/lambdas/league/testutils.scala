@@ -1,7 +1,7 @@
 package lambdas.league
 
 import cats.Id
-import cats.effect.{ExitCase, Sync}
+import cats.effect.Sync
 
 import scala.annotation.tailrec
 
@@ -41,11 +41,6 @@ object testutils {
   implicit val sync: Sync[Id] = new Sync[Id] {
     def suspend[A](thunk: => Id[A]): Id[A] = thunk
 
-    def bracketCase[A, B](acquire: Id[A])(use: A => Id[B])(release: (A, ExitCase[Throwable]) => Id[Unit]): Id[B] = {
-      val a = acquire
-      try { use(a) } finally { release(a, ExitCase.Completed) }
-    }
-
     def flatMap[A, B](fa: Id[A])(f: A => Id[B]): Id[B] = f(fa)
 
     @tailrec
@@ -56,7 +51,8 @@ object testutils {
 
     def raiseError[A](e: Throwable): Id[A] = throw e
 
-    def handleErrorWith[A](fa: Id[A])(f: Throwable => Id[A]): Id[A] = fa
+    def handleErrorWith[A](fa: Id[A])(f: Throwable => Id[A]): Id[A] =
+      try { fa } catch { case e: Throwable => f(e) }
 
     def pure[A](x: A): Id[A] = x
   }
