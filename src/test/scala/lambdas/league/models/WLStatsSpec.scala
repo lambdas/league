@@ -5,15 +5,15 @@ import java.time.LocalDate
 import cats.syntax.monoid._
 import io.circe.literal._
 import io.circe.syntax._
-import lambdas.league.models.WLStats.{fromResult, fromResults, zero}
+import lambdas.league.models.WLStats.{single, fromResult, fromResults, zero}
 import org.scalatest.{FlatSpec, Matchers}
 
 class WLStatsSpec extends FlatSpec with Matchers {
-  "WLStats" should "construct stats from win(true) and hidden" in {
-    WLStats(false, false) shouldBe WLStats(0, 1, 0)
-    WLStats(true, false) shouldBe WLStats(1, 0, 0)
-    WLStats(false, true) shouldBe WLStats(0, 0, 1)
-    WLStats(true, true) shouldBe WLStats(0, 0, 1)
+  "single" should "construct stats from win(true) and hidden" in {
+    single(false, false) shouldBe WLStats(0, 1, 0)
+    single(true, false) shouldBe WLStats(1, 0, 0)
+    single(false, true) shouldBe WLStats(0, 0, 1)
+    single(true, true) shouldBe WLStats(0, 0, 1)
   }
 
   "fromResult" should "construct stats from result" in {

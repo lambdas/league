@@ -5,7 +5,7 @@ import cats.instances.either._
 import io.circe.{Decoder, DecodingFailure, HCursor, JsonObject}
 
 private[scraper] final case class ResponseDao(gameHeaders: List[GameHeaderDao],
-                                              lineScores: List[LinescoreDao])
+                                              lineScores: List[LineScoreDao])
 
 private[scraper] object ResponseDao {
   implicit val jsonDecoder: Decoder[ResponseDao] = Decoder { c: HCursor =>
@@ -27,7 +27,7 @@ private[scraper] object ResponseDao {
               .contains("LineScore"))
             .toRight(DecodingFailure("no object with name LineScore", c.history))
             .flatMap(_("rowSet").toRight(DecodingFailure("no rowSet", c.history)))
-            .flatMap(_.as[List[LinescoreDao]])
+            .flatMap(_.as[List[LineScoreDao]])
         ).mapN(ResponseDao.apply _)
       }
   }

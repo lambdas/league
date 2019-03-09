@@ -33,7 +33,7 @@ class TeamsServiceSpec extends FlatSpec with Matchers {
       }"""
   }
 
-  "Service" should "response with HTML" in {
+  it should "response with HTML" in {
     val sut = TeamsService(getTeams, getWLStats)
     val req = Request[Id](headers = Headers(Accept(`text/html`)))
     val content = sut.run(req).value.get.as[String]
