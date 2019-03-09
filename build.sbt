@@ -30,6 +30,7 @@ lazy val root = (project in file("."))
       "io.circe" %% "circe-generic" % circeVersion,
       "io.circe" %% "circe-parser" % circeVersion,
       "io.circe" %% "circe-literal" % circeVersion,
+      "io.circe" %% "circe-optics" % circeVersion,
       "org.scalatest" %% "scalatest" % "3.0.5" % Test,
 //      "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.6" % Test,
     )

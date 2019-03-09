@@ -5,7 +5,7 @@ import cats.instances.string._
 import io.circe._
 import io.circe.generic.semiauto._
 
-sealed case class Team(name: String)
+final case class Team(name: String)
 
 object Team {
   implicit val jsonEncoder: Encoder[Team] = deriveEncoder

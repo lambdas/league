@@ -7,7 +7,7 @@ import cats.syntax.foldable._
 import io.circe._
 import io.circe.generic.semiauto._
 
-sealed case class WLStats(nWins: Int, nLosses: Int, nHidden: Int)
+final case class WLStats(nWins: Int, nLosses: Int, nHidden: Int)
 
 object WLStats {
   def apply(win: Boolean, hidden: Boolean): WLStats =
