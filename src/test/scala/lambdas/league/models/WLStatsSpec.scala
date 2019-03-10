@@ -10,48 +10,48 @@ import org.scalatest.{FlatSpec, Matchers}
 
 class WLStatsSpec extends FlatSpec with Matchers {
   "single" should "construct stats from win(true) and hidden" in {
-    single(false, false) shouldBe WLStats(0, 1, 0)
-    single(true, false) shouldBe WLStats(1, 0, 0)
-    single(false, true) shouldBe WLStats(0, 0, 1)
-    single(true, true) shouldBe WLStats(0, 0, 1)
+    single(false, true) shouldBe WLStats(0, 1, 0)
+    single(true, true) shouldBe WLStats(1, 0, 0)
+    single(false, false) shouldBe WLStats(0, 0, 1)
+    single(true, false) shouldBe WLStats(0, 0, 1)
   }
 
   "fromResult" should "construct stats from result" in {
     fromResult(
       GameResult(
-        Team("Atlanta Hawks"),
-        Team("Miami Heat"),
+        "Atlanta Hawks",
+        "Miami Heat",
         100,
         110,
         LocalDate.of(2019, 1, 1),
-        false)) shouldBe Map(
-      Team("Atlanta Hawks") -> WLStats(0, 1, 0),
-      Team("Miami Heat") -> WLStats(1, 0, 0))
+        true)) shouldBe Map(
+      "Atlanta Hawks" -> WLStats(0, 1, 0),
+      "Miami Heat" -> WLStats(1, 0, 0))
   }
 
   it should "construct stats from result when hidden" in {
     fromResult(
       GameResult(
-        Team("Atlanta Hawks"),
-        Team("Miami Heat"),
+        "Atlanta Hawks",
+        "Miami Heat",
         100,
         110,
         LocalDate.of(2019, 1, 1),
-        true)) shouldBe Map(
-      Team("Atlanta Hawks") -> WLStats(0, 0, 1),
-      Team("Miami Heat") -> WLStats(0, 0, 1))
+        false)) shouldBe Map(
+      "Atlanta Hawks" -> WLStats(0, 0, 1),
+      "Miami Heat" -> WLStats(0, 0, 1))
   }
 
   "fromResults" should "aggregate game results into stats" in {
     val events = Set(
-      GameResult(Team("Atlanta Hawks"), Team("Miami Heat"),     100, 110, LocalDate.of(2019, 1, 1), false),
-      GameResult(Team("Atlanta Hawks"), Team("Boston Celtics"), 100, 110, LocalDate.of(2019, 1, 2), false),
-      GameResult(Team("Atlanta Hawks"), Team("Denver Nuggets"), 100, 110, LocalDate.of(2019, 1, 2), true))
+      GameResult("Atlanta Hawks", "Miami Heat",     100, 110, LocalDate.of(2019, 1, 1), true),
+      GameResult("Atlanta Hawks", "Boston Celtics", 100, 110, LocalDate.of(2019, 1, 2), true),
+      GameResult("Atlanta Hawks", "Denver Nuggets", 100, 110, LocalDate.of(2019, 1, 2), false))
     fromResults(events) shouldBe Map(
-      Team("Atlanta Hawks")  -> WLStats(0, 2, 1),
-      Team("Miami Heat")     -> WLStats(1, 0, 0),
-      Team("Boston Celtics") -> WLStats(1, 0, 0),
-      Team("Denver Nuggets") -> WLStats(0, 0, 1))
+      "Atlanta Hawks"  -> WLStats(0, 2, 1),
+      "Miami Heat"     -> WLStats(1, 0, 0),
+      "Boston Celtics" -> WLStats(1, 0, 0),
+      "Denver Nuggets" -> WLStats(0, 0, 1))
   }
 
   "zero" should "provide null stats" in {

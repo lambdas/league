@@ -10,6 +10,7 @@ val circeVersion = "0.10.0"
 
 lazy val root = (project in file("."))
   .enablePlugins(SbtTwirl)
+  .enablePlugins(FlywayPlugin)
   .settings(
     name := "bball-server",
     scalacOptions ++= Seq(
@@ -19,10 +20,6 @@ lazy val root = (project in file("."))
       "-deprecation",
       "-unchecked",
       "-explaintypes",
-    ),
-    TwirlKeys.templateImports ++= Seq(
-      "lambdas.league._",
-      "lambdas.league.models._",
     ),
     libraryDependencies ++= Seq(
       "org.typelevel" %% "cats-core" % catsVersion,
@@ -37,6 +34,16 @@ lazy val root = (project in file("."))
       "io.circe" %% "circe-parser" % circeVersion,
       "io.circe" %% "circe-literal" % circeVersion,
       "io.circe" %% "circe-optics" % circeVersion,
+      "org.postgresql" % "postgresql" % "42.2.5",
+      "org.playframework.anorm" %% "anorm" % "2.6.2",
+      "ch.qos.logback" % "logback-classic" % "1.2.3",
       "org.scalatest" %% "scalatest" % "3.0.5" % Test,
-    )
+    ),
+    TwirlKeys.templateImports ++= Seq(
+      "lambdas.league._",
+      "lambdas.league.models._",
+    ),
+    flywayUrl := "jdbc:postgresql://localhost:5432/league",
+    flywayUser := "postgres",
+    flywayPassword := "whatevs",
   )

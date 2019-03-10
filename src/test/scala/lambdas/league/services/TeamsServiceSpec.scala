@@ -44,10 +44,10 @@ class TeamsServiceSpec extends FlatSpec with Matchers {
     content should include("<td>3</td>")
   }
 
-  private val getTeams = Kleisli[Id, Unit, Set[Team]](_ => Set(Team("Atlanta Hawks"), Team("Miami Heat")))
+  private val getTeams = Kleisli[Id, Unit, Set[Team]](_ => Set("Atlanta Hawks", "Miami Heat"))
   private val getWLStats = Kleisli[Id, Team, WLStats] {
-    case Team("Atlanta Hawks") => WLStats(1, 2, 3)
-    case Team("Miami Heat") => WLStats(4, 5, 6)
+    case "Atlanta Hawks" => WLStats(1, 2, 3)
+    case "Miami Heat" => WLStats(4, 5, 6)
     case _ => WLStats.zero
   }
 }

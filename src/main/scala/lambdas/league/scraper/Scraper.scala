@@ -11,7 +11,7 @@ import cats.syntax.foldable._
 import cats.syntax.functor._
 import cats.syntax.monadError._
 import io.circe.Json
-import lambdas.league.models.{GameResult, Team}
+import lambdas.league.models.GameResult
 import org.http4s.circe.CirceEntityCodec._
 import org.http4s.client.Client
 import org.http4s.{Header, Headers, Request, Uri}
@@ -49,12 +49,12 @@ object Scraper {
   private def result(header: GameHeaderDao, score1: LineScoreDao, score2: LineScoreDao): GameResult = {
     val (road, home) = if (header.roadTeamId == score1.teamId) (score1, score2) else (score2, score1)
     GameResult(
-      Team(s"${road.city} ${road.name}"),
-      Team(s"${home.city} ${home.name}"),
+      s"${road.city} ${road.name}",
+      s"${home.city} ${home.name}",
       road.score,
       home.score,
       header.date,
-      true)
+      false)
   }
 
   private def uri(date: LocalDate): Uri = {

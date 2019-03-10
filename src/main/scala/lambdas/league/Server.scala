@@ -1,6 +1,7 @@
 package lambdas.league
 
 import java.time.LocalDate
+import java.time.temporal.ChronoUnit
 
 import cats.data.Kleisli
 import cats.effect.IO
@@ -8,8 +9,12 @@ import fs2.StreamApp.ExitCode
 import fs2.{Stream, StreamApp}
 import lambdas.league.models.{Team, WLStats}
 import lambdas.league.scraper.Scraper
+import lambdas.league.store.DbStore
 import org.http4s.client.blaze.Http1Client
 import org.http4s.server.blaze._
+import cats.syntax.traverse._
+import cats.syntax.functor._
+import cats.instances.list._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -26,11 +31,17 @@ object Server extends StreamApp[IO] {
   }
 
   private def initStats: IO[Unit] = {
-    Http1Client[IO]().flatMap { c =>
-      Scraper.scoreboard(c, LocalDate.of(2019, 3, 7)).map(_.toSet).map(WLStats.fromResults).map { s =>
-        stats = s
-      }
-    }
+//    val seasonStart = LocalDate.of(2018, 10, 16)
+//    Http1Client[IO]().flatMap { c =>
+//      (0L to ChronoUnit.DAYS.between(seasonStart, LocalDate.now))
+//        .toList
+//        .map(seasonStart.plusDays)
+//        .traverse { d =>
+//          println(s"Fetching $d")
+//          Scraper.scoreboard(c, d).flatMap { s => s.traverse(DbStore.save[IO]) }
+//        }.void
+//    }
+    IO.unit
   }
 
   private val getTeams = Kleisli[IO, Unit, Set[Team]] { _ =>
@@ -64,10 +75,10 @@ object Server extends StreamApp[IO] {
       "Toronto Raptors",
       "Utah Jazz",
       "Washington Wizards",
-    ).map(Team(_)))
+    ))
   }
 
   private val getWLStats = Kleisli[IO, Team, WLStats] { team =>
-    IO.pure(stats.getOrElse(team, WLStats.zero))
+    DbStore.load[IO].map(_.toSet).map(WLStats.fromResults).map(_.getOrElse(team, WLStats.zero))
   }
 }

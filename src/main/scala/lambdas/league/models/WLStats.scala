@@ -19,12 +19,12 @@ object WLStats {
     def combine(x: WLStats, y: WLStats): WLStats = WLStats(x.nWins + y.nWins, x.nLosses + y.nLosses, x.nHidden + y.nHidden)
   }
 
-  def single(win: Boolean, hidden: Boolean): WLStats =
-    WLStats(toInt(!hidden && win), toInt(!hidden && !win), toInt(hidden))
+  def single(win: Boolean, visible: Boolean): WLStats =
+    WLStats(toInt(visible && win), toInt(visible && !win), toInt(!visible))
 
   def fromResult(r: GameResult): Map[Team, WLStats] = {
     val roadWin = r.roadScore > r.homeScore
-    Map(r.roadTeam -> single(roadWin, r.hidden), r.homeTeam -> single(!roadWin, r.hidden))
+    Map(r.roadTeam -> single(roadWin, r.visible), r.homeTeam -> single(!roadWin, r.visible))
   }
 
   def fromResults(results: Set[GameResult]): Map[Team, WLStats] = results.unorderedFoldMap(fromResult)

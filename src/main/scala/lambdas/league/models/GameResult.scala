@@ -7,4 +7,4 @@ final case class GameResult(roadTeam: Team,
                             roadScore: Int,
                             homeScore: Int,
                             date: LocalDate,
-                            hidden: Boolean)
+                            visible: Boolean)
