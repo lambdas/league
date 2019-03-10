@@ -7,7 +7,7 @@ import cats.data.Kleisli
 import cats.effect.IO
 import fs2.StreamApp.ExitCode
 import fs2.{Stream, StreamApp}
-import lambdas.league.models.{Team, WLStats}
+import lambdas.league.models.{GameResult, Team, WLStats}
 import lambdas.league.scraper.Scraper
 import lambdas.league.store.DbStore
 import org.http4s.client.blaze.Http1Client
@@ -26,6 +26,7 @@ object Server extends StreamApp[IO] {
       BlazeBuilder[IO]
         .bindHttp(8080, "localhost")
         .mountService(services.TeamsService(getTeams, getWLStats), "/")
+        .mountService(services.ResultsService(getResults), "/results")
         .serve
     }
   }
@@ -76,6 +77,10 @@ object Server extends StreamApp[IO] {
       "Utah Jazz",
       "Washington Wizards",
     ))
+  }
+
+  private val getResults = Kleisli[IO, Unit, Seq[GameResult]] { _ =>
+    DbStore.load[IO].map(_.sortWith { case (a, b) => a.date.isAfter(b.date) })
   }
 
   private val getWLStats = Kleisli[IO, Team, WLStats] { team =>

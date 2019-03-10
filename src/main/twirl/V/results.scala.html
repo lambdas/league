@@ -1,0 +1,32 @@
+@(results: Seq[GameResult])
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Results</title>
+</head>
+<body>
+<h1>Results</h1>
+<table>
+    <thead>
+    <tr>
+        <td>Date</td>
+        <td>Road Team</td>
+        <td>Road Score</td>
+        <td>Home Score</td>
+        <td>Home Team</td>
+    </tr>
+    </thead>
+    <tbody>
+    @results.map { res =>
+    <tr>
+        <td>@res.date</td>
+        <td>@res.roadTeam</td>
+        <td>@(if (res.visible) res.roadScore else "?")</td>
+        <td>@(if (res.visible) res.homeScore else "?")</td>
+        <td>@res.homeTeam</td>
+    </tr>
+    }
+    </tbody>
+</table>
+</body>
+</html>

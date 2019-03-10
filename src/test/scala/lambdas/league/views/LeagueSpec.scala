@@ -5,7 +5,7 @@ import lambdas.league.testutils.allTeamNames
 import org.scalatest._
 
 class LeagueSpec extends FlatSpec with Matchers {
-  "league page" should "have a table with all the teams" in {
+  "League page" should "have a table with all the teams" in {
     val stats = allTeamNames.map(_ -> WLStats.zero).toMap
     val html = V.html.league(stats).toString
     allTeamNames.foreach { name => html should include(name) }
