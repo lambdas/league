@@ -15,6 +15,10 @@ lazy val root = (project in file("."))
     scalacOptions ++= Seq(
       "-Ypartial-unification",
       "-language:higherKinds",
+      "-Xfatal-warnings",
+      "-deprecation",
+      "-unchecked",
+      "-explaintypes",
     ),
     TwirlKeys.templateImports ++= Seq(
       "lambdas.league._",
@@ -22,7 +26,6 @@ lazy val root = (project in file("."))
     ),
     libraryDependencies ++= Seq(
       "org.typelevel" %% "cats-core" % catsVersion,
-//      "org.typelevel" %% "cats-testkit" % catsVersion,
       "org.typelevel" %% "cats-effect" % "0.10.1",
       "org.http4s" %% "http4s-dsl" % http4sVersion,
       "org.http4s" %% "http4s-blaze-server" % http4sVersion,
@@ -35,6 +38,5 @@ lazy val root = (project in file("."))
       "io.circe" %% "circe-literal" % circeVersion,
       "io.circe" %% "circe-optics" % circeVersion,
       "org.scalatest" %% "scalatest" % "3.0.5" % Test,
-//      "com.github.alexarchambault" %% "scalacheck-shapeless_1.13" % "1.1.6" % Test,
     )
   )
