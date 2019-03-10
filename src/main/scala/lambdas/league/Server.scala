@@ -1,20 +1,36 @@
 package lambdas.league
 
+import java.time.LocalDate
+
 import cats.data.Kleisli
 import cats.effect.IO
 import fs2.StreamApp.ExitCode
 import fs2.{Stream, StreamApp}
 import lambdas.league.models.{Team, WLStats}
+import lambdas.league.scraper.Scraper
+import org.http4s.client.blaze.Http1Client
 import org.http4s.server.blaze._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object Server extends StreamApp[IO] {
+  private var stats: Map[Team, WLStats] = _
+
   override def stream(args: List[String], requestShutdown: IO[Unit]): Stream[IO, ExitCode] = {
-    BlazeBuilder[IO]
-      .bindHttp(8080, "localhost")
-      .mountService(services.TeamsService.apply(getTeams, getWLStats), "/")
-      .serve
+    Stream.eval(initStats).flatMap { _ =>
+      BlazeBuilder[IO]
+        .bindHttp(8080, "localhost")
+        .mountService(services.TeamsService(getTeams, getWLStats), "/")
+        .serve
+    }
+  }
+
+  private def initStats: IO[Unit] = {
+    Http1Client[IO]().flatMap { c =>
+      Scraper.scoreboard(c, LocalDate.of(2019, 3, 7)).map(_.toSet).map(WLStats.fromResults).map { s =>
+        stats = s
+      }
+    }
   }
 
   private val getTeams = Kleisli[IO, Unit, Set[Team]] { _ =>
@@ -52,6 +68,6 @@ object Server extends StreamApp[IO] {
   }
 
   private val getWLStats = Kleisli[IO, Team, WLStats] { team =>
-    IO.pure(WLStats.zero)
+    IO.pure(stats.getOrElse(team, WLStats.zero))
   }
 }

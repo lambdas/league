@@ -14,6 +14,6 @@ private[scraper] object LineScoreDao {
       c.downN(5).as[String],
       c.downN(6).as[String],
       c.downN(22).as[Int]
-    ).mapN(LineScoreDao.apply _)
+    ).mapN(LineScoreDao.apply)
   }
 }

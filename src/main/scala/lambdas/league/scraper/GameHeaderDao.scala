@@ -15,6 +15,6 @@ private[scraper] object GameHeaderDao {
       c.downN(0).as[LocalDateTime].map(_.toLocalDate),
       c.downN(7).as[Long],
       c.downN(6).as[Long]
-    ).mapN(GameHeaderDao.apply _)
+    ).mapN(GameHeaderDao.apply)
   }
 }

@@ -1,7 +1,7 @@
 package lambdas.league.scraper
 
-import cats.syntax.apply._
 import cats.instances.either._
+import cats.syntax.apply._
 import io.circe.{Decoder, DecodingFailure, HCursor, JsonObject}
 
 private[scraper] final case class ResponseDao(gameHeaders: List[GameHeaderDao],
@@ -28,7 +28,7 @@ private[scraper] object ResponseDao {
             .toRight(DecodingFailure("no object with name LineScore", c.history))
             .flatMap(_("rowSet").toRight(DecodingFailure("no rowSet", c.history)))
             .flatMap(_.as[List[LineScoreDao]])
-        ).mapN(ResponseDao.apply _)
+        ).mapN(ResponseDao.apply)
       }
   }
 }

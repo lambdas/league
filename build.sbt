@@ -12,7 +12,10 @@ lazy val root = (project in file("."))
   .enablePlugins(SbtTwirl)
   .settings(
     name := "bball-server",
-    scalacOptions += "-Ypartial-unification",
+    scalacOptions ++= Seq(
+      "-Ypartial-unification",
+      "-language:higherKinds",
+    ),
     TwirlKeys.templateImports ++= Seq(
       "lambdas.league._",
       "lambdas.league.models._",
