@@ -5,6 +5,8 @@ import java.time.temporal.ChronoUnit
 
 import cats.data.Kleisli
 import cats.effect.IO
+import cats.instances.list._
+import cats.syntax.traverse._
 import fs2.StreamApp.ExitCode
 import fs2.{Stream, StreamApp}
 import lambdas.league.models.{GameResult, Team, WLStats}
@@ -12,42 +14,36 @@ import lambdas.league.scraper.Scraper
 import lambdas.league.store.DbStore
 import org.http4s.client.blaze.Http1Client
 import org.http4s.server.blaze._
-import cats.syntax.traverse._
-import cats.syntax.functor._
-import cats.instances.list._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object Server extends StreamApp[IO] {
-  private var stats: Map[Team, WLStats] = _
-
   override def stream(args: List[String], requestShutdown: IO[Unit]): Stream[IO, ExitCode] = {
     Stream.eval(initStats).flatMap { _ =>
       BlazeBuilder[IO]
         .bindHttp(8080, "localhost")
         .mountService(services.TeamsService(getTeams, getWLStats), "/")
-        .mountService(services.ResultsService(getResults), "/results")
+        .mountService(services.ResultsService(getResults, setResultVisible))
         .serve
     }
   }
 
   private def initStats: IO[Unit] = {
-//    val seasonStart = LocalDate.of(2018, 10, 16)
-//    Http1Client[IO]().flatMap { c =>
-//      (0L to ChronoUnit.DAYS.between(seasonStart, LocalDate.now))
-//        .toList
-//        .map(seasonStart.plusDays)
-//        .traverse { d =>
-//          println(s"Fetching $d")
-//          Scraper.scoreboard(c, d).flatMap { s => s.traverse(DbStore.save[IO]) }
-//        }.void
-//    }
-    IO.unit
+    for {
+      c <- Http1Client[IO]()
+      now <- IO(LocalDate.now)
+      lastDate <- DbStore.lastDate[IO].map(_.getOrElse(LocalDate.of(2018, 10, 16)))
+      updateDates = (0L to ChronoUnit.DAYS.between(lastDate, now.minusDays(1))).toList.map(lastDate.plusDays)
+      _ <- IO(println(s"Updating $updateDates"))
+      _ <- updateDates.traverse { d =>
+        Scraper.scoreboard(c, d).flatMap { s => s.traverse(DbStore.save[IO]) }
+      }
+    } yield ()
   }
 
-  private val getTeams = Kleisli[IO, Unit, Set[Team]] { _ =>
-    IO.pure(Set(
-      "ATL",
+  private val getTeams = Kleisli[IO, Unit, List[Team]] { _ =>
+    IO.pure(List(
+      "Atlanta Hawks",
       "Boston Celtics",
       "Brooklyn Nets",
       "Charlotte Hornets",
@@ -85,5 +81,9 @@ object Server extends StreamApp[IO] {
 
   private val getWLStats = Kleisli[IO, Team, WLStats] { team =>
     DbStore.load[IO].map(_.toSet).map(WLStats.fromResults).map(_.getOrElse(team, WLStats.zero))
+  }
+
+  private val setResultVisible = Kleisli[IO, Long, Unit] { id =>
+    DbStore.setVisible[IO](id)
   }
 }

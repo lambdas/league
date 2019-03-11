@@ -4,7 +4,8 @@ import java.time.LocalDate
 import io.circe._
 import io.circe.generic.semiauto._
 
-final case class GameResult(roadTeam: Team,
+final case class GameResult(id: Long,
+                            roadTeam: Team,
                             homeTeam: Team,
                             roadScore: Int,
                             homeScore: Int,

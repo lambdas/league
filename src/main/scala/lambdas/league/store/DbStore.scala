@@ -1,10 +1,12 @@
 package lambdas.league.store
 
 import java.sql.{Connection, DriverManager}
+import java.time.LocalDate
 import java.util.Properties
 
 import anorm.Macro.ColumnNaming
 import anorm._
+import anorm.SqlParser._
 import cats.ApplicativeError
 import cats.effect.Sync
 import cats.syntax.applicativeError._
@@ -31,12 +33,20 @@ object DbStore {
             ${r.homeTeam},
             ${r.roadScore},
             ${r.homeScore},
-            ${r.visible})
+            ${r.visible}) on conflict do nothing
       """.executeInsert()
   }
 
   def load[F[_]: Sync]: F[List[GameResult]] = withConnection { implicit conn =>
-    SQL"select * from results".as(parser.*)
+    SQL"select * from results order by date desc, road_team asc".as(parser.*)
+  }
+
+  def setVisible[F[_]: Sync](id: Long): F[Unit] = withConnection { implicit conn =>
+    SQL"update results set visible=true where id=$id".executeUpdate()
+  }
+
+  def lastDate[F[_]: Sync]: F[Option[LocalDate]] = withConnection { implicit conn =>
+    SQL"select date from results order by date desc limit 1".as(scalar[LocalDate].singleOpt)
   }
 
   private def withConnection[F[_]: Sync, A](f: Connection => A): F[A] = {

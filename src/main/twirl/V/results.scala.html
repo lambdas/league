@@ -14,6 +14,7 @@
         <td>Road Score</td>
         <td>Home Score</td>
         <td>Home Team</td>
+        <td>Show</td>
     </tr>
     </thead>
     <tbody>
@@ -24,6 +25,11 @@
         <td>@(if (res.visible) res.roadScore else "?")</td>
         <td>@(if (res.visible) res.homeScore else "?")</td>
         <td>@res.homeTeam</td>
+        <td>
+            <form>
+                <button type="submit" formmethod="post" formaction="/result/@res.id/show">Show</button>
+            </form>
+        </td>
     </tr>
     }
     </tbody>

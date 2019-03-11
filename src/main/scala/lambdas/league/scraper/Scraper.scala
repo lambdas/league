@@ -49,6 +49,7 @@ object Scraper {
   private def result(header: GameHeaderDao, score1: LineScoreDao, score2: LineScoreDao): GameResult = {
     val (road, home) = if (header.roadTeamId == score1.teamId) (score1, score2) else (score2, score1)
     GameResult(
+      -1,
       s"${road.city} ${road.name}",
       s"${home.city} ${home.name}",
       road.score,
