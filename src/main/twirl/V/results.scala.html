@@ -26,9 +26,11 @@
         <td>@(if (res.visible) res.homeScore else "?")</td>
         <td>@res.homeTeam</td>
         <td>
-            <form>
-                <button type="submit" formmethod="post" formaction="/result/@res.id/show">Show</button>
-            </form>
+            @(if (!res.visible) {
+                <form>
+                    <button type="submit" formmethod="post" formaction="/result/@res.id/show">Show</button>
+                </form>
+            })
         </td>
     </tr>
     }
