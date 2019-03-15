@@ -5,71 +5,52 @@ import java.time.LocalDate
 import java.util.Properties
 
 import anorm.Macro.ColumnNaming
-import anorm._
 import anorm.SqlParser._
-import cats.ApplicativeError
-import cats.effect.Sync
-import cats.syntax.applicativeError._
-import cats.syntax.functor._
-import cats.syntax.flatMap._
+import anorm._
+import cats.effect.{Resource, Sync}
 import lambdas.league.models.GameResult
-import resource.Resource
 
 object DbStore {
 
   private val parser = Macro.namedParser[GameResult](ColumnNaming.SnakeCase)
-//  private val connection = Resource.make
 
-  def save[F[_]: Sync](r: GameResult): F[Unit] = withConnection { implicit conn =>
-    SQL"""
-          insert into results (
-            date,
-            road_team,
-            home_team,
-            road_score,
-            home_score,
-            visible
-          ) values (
-            ${r.date},
-            ${r.roadTeam},
-            ${r.homeTeam},
-            ${r.roadScore},
-            ${r.homeScore},
-            ${r.visible}) on conflict do nothing
-      """.executeInsert()
+  def save[F[_]: Sync](db: Resource[F, Connection], r: GameResult): F[Unit] = db.use { conn =>
+    Sync[F].delay {
+      SQL"""
+            insert into results (
+              date,
+              road_team,
+              home_team,
+              road_score,
+              home_score,
+              visible
+            ) values (
+              ${r.date},
+              ${r.roadTeam},
+              ${r.homeTeam},
+              ${r.roadScore},
+              ${r.homeScore},
+              ${r.visible}) on conflict do nothing
+        """.executeInsert()(conn)
+    }
   }
 
-  def load[F[_]: Sync]: F[List[GameResult]] = withConnection { implicit conn =>
-    SQL"select * from results order by date desc, road_team asc".as(parser.*)
+  def load[F[_]: Sync](db: Resource[F, Connection]): F[List[GameResult]] = db.use { conn =>
+    Sync[F].delay {
+      SQL"select * from results order by date desc, road_team asc".as(parser.*)(conn)
+    }
   }
 
-  def setVisible[F[_]: Sync](id: Long): F[Unit] = withConnection { implicit conn =>
-    SQL"update results set visible=true where id=$id".executeUpdate()
+  def setVisible[F[_]: Sync](db: Resource[F, Connection])(id: Long): F[Unit] = db.use { conn =>
+    Sync[F].delay {
+      SQL"update results set visible=true where id=$id".executeUpdate()(conn)
+    }
   }
 
-  def lastDate[F[_]: Sync]: F[Option[LocalDate]] = withConnection { implicit conn =>
-    SQL"select date from results order by date desc limit 1".as(scalar[LocalDate].singleOpt)
+  def lastDate[F[_]: Sync](db: Resource[F, Connection]): F[Option[LocalDate]] = db.use { conn =>
+    Sync[F].delay {
+      SQL"select date from results order by date desc limit 1".as(scalar[LocalDate].singleOpt)(conn)
+    }
   }
 
-  private def withConnection[F[_]: Sync, A](f: Connection => A): F[A] = {
-    for {
-      conn <- openConnection
-      result <- Sync[F].delay(f(conn)).attempt
-      _ <- closeConnection(conn)
-      value <- ApplicativeError[F, Throwable].fromEither(result)
-    } yield value
-  }
-
-  private def openConnection[F[_]: Sync]: F[Connection] = Sync[F].delay {
-    val props = new Properties
-    props.setProperty("user", "postgres")
-    props.setProperty("password", "whatevs")
-    props.setProperty("ssl", "false")
-
-    DriverManager.getConnection("jdbc:postgresql://localhost:5432/league", props)
-  }
-
-  private def closeConnection[F[_]: Sync](conn: Connection): F[Unit] = Sync[F].delay {
-    conn.close()
-  }
 }
