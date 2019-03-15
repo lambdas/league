@@ -1,8 +1,7 @@
 package lambdas.league.store
 
-import java.sql.{Connection, DriverManager}
+import java.sql.Connection
 import java.time.LocalDate
-import java.util.Properties
 
 import anorm.Macro.ColumnNaming
 import anorm.SqlParser._
@@ -41,7 +40,7 @@ object DbStore {
     }
   }
 
-  def setVisible[F[_]: Sync](db: Resource[F, Connection])(id: Long): F[Unit] = db.use { conn =>
+  def setVisible[F[_]: Sync](db: Resource[F, Connection], id: Long): F[Unit] = db.use { conn =>
     Sync[F].delay {
       SQL"update results set visible=true where id=$id".executeUpdate()(conn)
     }

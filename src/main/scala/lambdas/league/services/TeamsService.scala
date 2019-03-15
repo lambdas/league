@@ -1,7 +1,7 @@
 package lambdas.league.services
 
 import cats.Monad
-import cats.data.Kleisli
+import cats.data.{Kleisli, OptionT}
 import cats.effect.Sync
 import cats.instances.list._
 import io.circe.syntax._
@@ -11,17 +11,15 @@ import org.http4s._
 import org.http4s.circe._
 import org.http4s.dsl.io._
 import org.http4s.twirl._
-import org.http4s.syntax._
-import org.http4s.implicits._
 
 object TeamsService {
 
   def apply[F[_]: Sync](getTeams: Kleisli[F, Unit, List[Team]],
-                        getWLStats: Kleisli[F, Team, WLStats]): Kleisli[F, Request[F], Response[F]] =
+                        getWLStats: Kleisli[F, Team, WLStats]): Kleisli[OptionT[F, ?], Request[F], Response[F]] =
     HttpRoutes.of[F] {
       case req @ GET -> Root if req.acceptsJson => response(getTeams, getWLStats, _.asJson)
       case GET -> Root => response(getTeams, getWLStats, V.html.league(_))
-    }.orNotFound
+    }
 
   def response[F[_]: Monad, A: EntityEncoder[F, ?]](getTeams: Kleisli[F, Unit, List[Team]],
                                                     getWLStats: Kleisli[F, Team, WLStats],

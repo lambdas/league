@@ -14,8 +14,10 @@ import cats.syntax.traverse._
 import lambdas.league.models.{GameResult, Team, WLStats}
 import lambdas.league.scraper.Scraper
 import lambdas.league.store.DbStore
+import lambdas.league.utils.http._
 import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.server.blaze._
+import org.http4s.implicits._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -23,8 +25,10 @@ object Server extends IOApp {
   def run(args: List[String]): IO[ExitCode] = {
     initStats *> BlazeServerBuilder[IO]
       .bindHttp(8080, "localhost")
-      .withHttpApp(services.TeamsService(getTeams, getWLStats))
-      .withHttpApp(services.ResultsService(getResults, setResultVisible))
+      .withHttpApp(
+        services.TeamsService(getTeams, getWLStats)
+          .and(services.ResultsService(getResults, setResultVisible))
+          .orNotFound)
       .serve
       .compile
       .drain
