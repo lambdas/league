@@ -5,8 +5,8 @@ ThisBuild / version          := "0.1.0-SNAPSHOT"
 ThisBuild / organization     := "lambdas"
 
 val catsVersion = "1.6.0"
-val http4sVersion = "0.18.21"
-val circeVersion = "0.10.0"
+val http4sVersion = "0.20.0-M6"
+val circeVersion = "0.11.1"
 
 lazy val root = (project in file("."))
   .enablePlugins(SbtTwirl)
@@ -23,7 +23,7 @@ lazy val root = (project in file("."))
     ),
     libraryDependencies ++= Seq(
       "org.typelevel" %% "cats-core" % catsVersion,
-      "org.typelevel" %% "cats-effect" % "0.10.1",
+      "org.typelevel" %% "cats-effect" % "1.1.0",
       "org.http4s" %% "http4s-dsl" % http4sVersion,
       "org.http4s" %% "http4s-blaze-server" % http4sVersion,
       "org.http4s" %% "http4s-blaze-client" % http4sVersion,
@@ -33,7 +33,7 @@ lazy val root = (project in file("."))
       "io.circe" %% "circe-generic" % circeVersion,
       "io.circe" %% "circe-parser" % circeVersion,
       "io.circe" %% "circe-literal" % circeVersion,
-      "io.circe" %% "circe-optics" % circeVersion,
+      "io.circe" %% "circe-optics" % "0.11.0",
       "org.postgresql" % "postgresql" % "42.2.5",
       "org.playframework.anorm" %% "anorm" % "2.6.2",
       "ch.qos.logback" % "logback-classic" % "1.2.3",

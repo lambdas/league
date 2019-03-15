@@ -4,39 +4,40 @@ import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
 import cats.data.Kleisli
-import cats.effect.IO
+import cats.effect._
+import cats.syntax.functor._
 import cats.instances.list._
 import cats.syntax.traverse._
-import fs2.StreamApp.ExitCode
-import fs2.{Stream, StreamApp}
+import cats.syntax.apply._
 import lambdas.league.models.{GameResult, Team, WLStats}
 import lambdas.league.scraper.Scraper
 import lambdas.league.store.DbStore
-import org.http4s.client.blaze.Http1Client
+import org.http4s.client.blaze.{BlazeClientBuilder, Http1Client}
 import org.http4s.server.blaze._
-
 import scala.concurrent.ExecutionContext.Implicits.global
 
-object Server extends StreamApp[IO] {
-  override def stream(args: List[String], requestShutdown: IO[Unit]): Stream[IO, ExitCode] = {
-    Stream.eval(initStats).flatMap { _ =>
-      BlazeBuilder[IO]
-        .bindHttp(8080, "localhost")
-        .mountService(services.TeamsService(getTeams, getWLStats), "/")
-        .mountService(services.ResultsService(getResults, setResultVisible))
-        .serve
-    }
+object Server extends IOApp {
+  def run(args: List[String]): IO[ExitCode] = {
+    initStats *> BlazeServerBuilder[IO]
+      .bindHttp(8080, "localhost")
+      .withHttpApp(services.TeamsService(getTeams, getWLStats))
+      .withHttpApp(services.ResultsService(getResults, setResultVisible))
+      .serve
+      .compile
+      .drain
+      .as(ExitCode.Success)
   }
 
   private def initStats: IO[Unit] = {
     for {
-      c <- Http1Client[IO]()
       now <- IO(LocalDate.now)
       lastDate <- DbStore.lastDate[IO].map(_.getOrElse(LocalDate.of(2018, 10, 16)))
       updateDates = (0L to ChronoUnit.DAYS.between(lastDate, now.minusDays(1))).toList.map(lastDate.plusDays)
       _ <- IO(println(s"Updating $updateDates"))
       _ <- updateDates.traverse { d =>
-        Scraper.scoreboard(c, d).flatMap { s => s.traverse(DbStore.save[IO]) }
+        BlazeClientBuilder[IO](global).resource.use { client =>
+          Scraper.scoreboard(client, d).flatMap { s => s.traverse(DbStore.save[IO]) }
+        }
       }
     } yield ()
   }

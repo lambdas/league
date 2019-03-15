@@ -13,10 +13,12 @@ import cats.syntax.applicativeError._
 import cats.syntax.functor._
 import cats.syntax.flatMap._
 import lambdas.league.models.GameResult
+import resource.Resource
 
 object DbStore {
 
   private val parser = Macro.namedParser[GameResult](ColumnNaming.SnakeCase)
+//  private val connection = Resource.make
 
   def save[F[_]: Sync](r: GameResult): F[Unit] = withConnection { implicit conn =>
     SQL"""
