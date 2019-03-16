@@ -51,5 +51,4 @@ object DbStore {
       SQL"select date from results order by date desc limit 1".as(scalar[LocalDate].singleOpt)(conn)
     }
   }
-
 }

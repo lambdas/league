@@ -19,6 +19,7 @@ class WLStatsSpec extends FlatSpec with Matchers {
   "fromResult" should "construct stats from result" in {
     fromResult(
       GameResult(
+        0,
         "Atlanta Hawks",
         "Miami Heat",
         100,
@@ -32,6 +33,7 @@ class WLStatsSpec extends FlatSpec with Matchers {
   it should "construct stats from result when hidden" in {
     fromResult(
       GameResult(
+        0,
         "Atlanta Hawks",
         "Miami Heat",
         100,
@@ -44,9 +46,9 @@ class WLStatsSpec extends FlatSpec with Matchers {
 
   "fromResults" should "aggregate game results into stats" in {
     val events = Set(
-      GameResult("Atlanta Hawks", "Miami Heat",     100, 110, LocalDate.of(2019, 1, 1), true),
-      GameResult("Atlanta Hawks", "Boston Celtics", 100, 110, LocalDate.of(2019, 1, 2), true),
-      GameResult("Atlanta Hawks", "Denver Nuggets", 100, 110, LocalDate.of(2019, 1, 2), false))
+      GameResult(0, "Atlanta Hawks", "Miami Heat",     100, 110, LocalDate.of(2019, 1, 1), true),
+      GameResult(0, "Atlanta Hawks", "Boston Celtics", 100, 110, LocalDate.of(2019, 1, 2), true),
+      GameResult(0, "Atlanta Hawks", "Denver Nuggets", 100, 110, LocalDate.of(2019, 1, 2), false))
     fromResults(events) shouldBe Map(
       "Atlanta Hawks"  -> WLStats(0, 2, 1),
       "Miami Heat"     -> WLStats(1, 0, 0),

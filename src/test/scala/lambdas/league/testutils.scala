@@ -1,7 +1,7 @@
 package lambdas.league
 
 import cats.Id
-import cats.effect.Sync
+import cats.effect.{ExitCase, Sync}
 
 import scala.annotation.tailrec
 
@@ -55,5 +55,12 @@ object testutils {
       try { fa } catch { case e: Throwable => f(e) }
 
     def pure[A](x: A): Id[A] = x
+
+    def bracketCase[A, B](acquire: Id[A])(use: A => Id[B])(release: (A, ExitCase[Throwable]) => Id[Unit]): Id[B] = {
+      val a = acquire
+      val res = use(a)
+      release(a, ExitCase.Completed)
+      res
+    }
   }
 }

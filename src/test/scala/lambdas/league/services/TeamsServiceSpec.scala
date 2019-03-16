@@ -6,7 +6,8 @@ import io.circe._
 import io.circe.literal._
 import lambdas.league.models.{Team, WLStats}
 import lambdas.league.testutils._
-import org.http4s.MediaType.{`application/json`, `text/html`}
+import org.http4s.MediaType.application.json
+import org.http4s.MediaType.text.html
 import org.http4s.circe._
 import org.http4s.headers.Accept
 import org.http4s.{Headers, Request}
@@ -15,7 +16,7 @@ import org.scalatest.{FlatSpec, Matchers}
 class TeamsServiceSpec extends FlatSpec with Matchers {
   "Service" should "response with JSON" in {
     val sut = TeamsService(getTeams, getWLStats)
-    val req = Request[Id](headers = Headers(Accept(`application/json`)))
+    val req = Request[Id](headers = Headers(Accept(json)))
     val content = sut.run(req).value.get.as[Json]
 
     content shouldBe json"""
@@ -35,7 +36,7 @@ class TeamsServiceSpec extends FlatSpec with Matchers {
 
   it should "response with HTML" in {
     val sut = TeamsService(getTeams, getWLStats)
-    val req = Request[Id](headers = Headers(Accept(`text/html`)))
+    val req = Request[Id](headers = Headers(Accept(html)))
     val content = sut.run(req).value.get.as[String]
 
     content should include("<td>Atlanta Hawks</td>")
@@ -44,7 +45,7 @@ class TeamsServiceSpec extends FlatSpec with Matchers {
     content should include("<td>3</td>")
   }
 
-  private val getTeams = Kleisli[Id, Unit, Set[Team]](_ => Set("Atlanta Hawks", "Miami Heat"))
+  private val getTeams = Kleisli[Id, Unit, List[Team]](_ => List("Atlanta Hawks", "Miami Heat"))
   private val getWLStats = Kleisli[Id, Team, WLStats] {
     case "Atlanta Hawks" => WLStats(1, 2, 3)
     case "Miami Heat" => WLStats(4, 5, 6)

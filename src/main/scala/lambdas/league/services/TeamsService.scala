@@ -17,7 +17,7 @@ object TeamsService {
   def apply[F[_]: Sync](getTeams: Kleisli[F, Unit, List[Team]],
                         getWLStats: Kleisli[F, Team, WLStats]): Kleisli[OptionT[F, ?], Request[F], Response[F]] =
     HttpRoutes.of[F] {
-      case req @ GET -> Root if req.acceptsJson => response(getTeams, getWLStats, _.asJson)
+      case req @ GET -> Root if req.acceptsJson => response(getTeams, getWLStats, _.toMap.asJson)
       case GET -> Root => response(getTeams, getWLStats, V.html.league(_))
     }
 
