@@ -5,7 +5,7 @@ import java.time.LocalDate
 import lambdas.league.models.GameResult
 import org.scalatest.{FlatSpec, Matchers}
 
-class ResultsSpec extends FlatSpec with Matchers {
+class ResultsViewSpec extends FlatSpec with Matchers {
   "Results page" should "have a table with all results" in {
     val results = Seq(
       GameResult(1, "Atlanta Hawks", "Miami Heat",     100, 110, LocalDate.of(2019, 1, 1), true),

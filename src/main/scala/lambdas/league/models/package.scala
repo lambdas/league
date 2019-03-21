@@ -1,5 +1,6 @@
 package lambdas.league
 
 package object models {
-  type Team = String
+  type TeamName = String
+  type TeamCode = String
 }

@@ -1,0 +1,20 @@
+@(stats: List[(Team, WLStats)])
+<!DOCTYPE html>
+<html>
+<head>
+    <title>League</title>
+</head>
+<body>
+<h1>League</h1>
+@defining(stats.partition(_._1.conference == "east")) { case (east, west) =>
+    <div>
+        <h3>East</h3>
+        @standingsTable(east)
+    </div>
+    <div>
+        <h3>West</h3>
+        @standingsTable(west)
+    </div>
+}
+</body>
+</html>

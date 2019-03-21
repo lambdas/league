@@ -22,12 +22,12 @@ object WLStats {
   def single(win: Boolean, visible: Boolean): WLStats =
     WLStats(toInt(visible && win), toInt(visible && !win), toInt(!visible))
 
-  def fromResult(r: GameResult): Map[Team, WLStats] = {
+  def fromResult(r: GameResult): Map[TeamName, WLStats] = {
     val roadWin = r.roadScore > r.homeScore
     Map(r.roadTeam -> single(roadWin, r.visible), r.homeTeam -> single(!roadWin, r.visible))
   }
 
-  def fromResults(results: Set[GameResult]): Map[Team, WLStats] = results.unorderedFoldMap(fromResult)
+  def fromResults(results: Set[GameResult]): Map[TeamName, WLStats] = results.unorderedFoldMap(fromResult)
 
   private def toInt(b: Boolean): Int = if (b) 1 else 0
 }

@@ -5,7 +5,7 @@ ThisBuild / version          := "0.1.0-SNAPSHOT"
 ThisBuild / organization     := "lambdas"
 
 val catsVersion = "1.6.0"
-val http4sVersion = "0.20.0-M6"
+val http4sVersion = "0.20.0-M7"
 val circeVersion = "0.11.1"
 
 lazy val root = (project in file("."))

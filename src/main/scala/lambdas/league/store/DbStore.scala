@@ -7,11 +7,12 @@ import anorm.Macro.ColumnNaming
 import anorm.SqlParser._
 import anorm._
 import cats.effect.{Resource, Sync}
-import lambdas.league.models.GameResult
+import lambdas.league.models.{GameResult, Team}
 
 object DbStore {
 
   private val parser = Macro.namedParser[GameResult](ColumnNaming.SnakeCase)
+  private val teamParser = Macro.namedParser[Team](ColumnNaming.SnakeCase)
 
   def save[F[_]: Sync](db: Resource[F, Connection], r: GameResult): F[Unit] = db.use { conn =>
     Sync[F].delay {
@@ -37,6 +38,12 @@ object DbStore {
   def load[F[_]: Sync](db: Resource[F, Connection]): F[List[GameResult]] = db.use { conn =>
     Sync[F].delay {
       SQL"select * from results order by date desc, road_team asc".as(parser.*)(conn)
+    }
+  }
+
+  def teams[F[_]: Sync](db: Resource[F, Connection]): F[List[Team]] = db.use { conn =>
+    Sync[F].delay {
+      SQL"select * from teams order by name asc".as(teamParser.*)(conn)
     }
   }
 

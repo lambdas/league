@@ -11,7 +11,7 @@ import cats.instances.list._
 import cats.syntax.apply._
 import cats.syntax.functor._
 import cats.syntax.traverse._
-import lambdas.league.models.{GameResult, Team, WLStats}
+import lambdas.league.models.{GameResult, Team, TeamName, WLStats}
 import lambdas.league.scraper.Scraper
 import lambdas.league.store.DbStore
 import lambdas.league.utils.http._
@@ -26,7 +26,7 @@ object Server extends IOApp {
     initStats *> BlazeServerBuilder[IO]
       .bindHttp(8080, "localhost")
       .withHttpApp(
-        services.TeamsService(getTeams, getWLStats)
+        services.StandingsService(getTeams, getWLStats)
           .and(services.ResultsService(getResults, setResultVisible))
           .orNotFound)
       .serve
@@ -62,44 +62,14 @@ object Server extends IOApp {
   }
 
   private val getTeams = Kleisli[IO, Unit, List[Team]] { _ =>
-    IO.pure(List(
-      "Atlanta Hawks",
-      "Boston Celtics",
-      "Brooklyn Nets",
-      "Charlotte Hornets",
-      "Chicago Bulls",
-      "Cleveland Cavaliers",
-      "Dallas Mavericks",
-      "Denver Nuggets",
-      "Detroit Pistons",
-      "Golden State Warriors",
-      "Houston Rockets",
-      "Indiana Pacers",
-      "LA Clippers",
-      "Los Angeles Lakers",
-      "Miami Heat",
-      "Milwaukee Bucks",
-      "Minnesota Timberwolves",
-      "New Orleans Pelicans",
-      "New York Knicks",
-      "Oklahoma City Thunder",
-      "Orlando Magic",
-      "Philadelphia 76ers",
-      "Phoenix Suns",
-      "Portland Trail Blazers",
-      "Sacramento Kings",
-      "San Antonio Spurs",
-      "Toronto Raptors",
-      "Utah Jazz",
-      "Washington Wizards",
-    ))
+    DbStore.teams[IO](db)
   }
 
   private val getResults = Kleisli[IO, Unit, Seq[GameResult]] { _ =>
     DbStore.load[IO](db).map(_.sortWith { case (a, b) => a.date.isAfter(b.date) })
   }
 
-  private val getWLStats = Kleisli[IO, Team, WLStats] { team =>
+  private val getWLStats = Kleisli[IO, TeamName, WLStats] { team =>
     DbStore.load[IO](db).map(_.toSet).map(WLStats.fromResults).map(_.getOrElse(team, WLStats.zero))
   }
 

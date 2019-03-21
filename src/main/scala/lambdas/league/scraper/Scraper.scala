@@ -18,7 +18,7 @@ import org.http4s.{Header, Headers, Request, Uri}
 
 object Scraper {
   private val headers = Headers(
-    Header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.92 Safari/537.36"),
+    Header("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/72.0.3626.121 Safari/537.36"),
     Header("Accept-encoding", "deflate, br"),
     Header("Accept-language", "en-US,en;q=0.9"))
 
@@ -48,14 +48,7 @@ object Scraper {
 
   private def result(header: GameHeaderDao, score1: LineScoreDao, score2: LineScoreDao): GameResult = {
     val (road, home) = if (header.roadTeamId == score1.teamId) (score1, score2) else (score2, score1)
-    GameResult(
-      -1,
-      s"${road.city} ${road.name}",
-      s"${home.city} ${home.name}",
-      road.score,
-      home.score,
-      header.date,
-      false)
+    GameResult(-1, road.teamCode, home.teamCode, road.score, home.score, header.date, false)
   }
 
   private def uri(date: LocalDate): Uri = {

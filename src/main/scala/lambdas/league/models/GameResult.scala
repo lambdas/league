@@ -5,8 +5,8 @@ import io.circe._
 import io.circe.generic.semiauto._
 
 final case class GameResult(id: Long,
-                            roadTeam: Team,
-                            homeTeam: Team,
+                            roadTeam: TeamCode,
+                            homeTeam: TeamCode,
                             roadScore: Int,
                             homeScore: Int,
                             date: LocalDate,
