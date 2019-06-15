@@ -55,7 +55,7 @@ object Server extends IOApp {
       _ <- IO(println(s"Updating $updateDates"))
       _ <- updateDates.traverse { d =>
         BlazeClientBuilder[IO](global).resource.use { client =>
-          Scraper.scoreboard(client, d).flatMap { s => s.traverse(DbStore.save[IO](db, _)) }
+          Scraper.scoreboard(client, d).flatMap { s => s.traverse(DbStore.saveResult[IO](db, _)) }
         }
       }
     } yield ()
@@ -66,14 +66,15 @@ object Server extends IOApp {
   }
 
   private val getResults = Kleisli[IO, Unit, Seq[GameResult]] { _ =>
-    DbStore.load[IO](db).map(_.sortWith { case (a, b) => a.date.isAfter(b.date) })
+    DbStore.results[IO](db, 2018).map(_.sortWith { case (a, b) => a.date.isAfter(b.date) })
   }
 
   private val getWLStats = Kleisli[IO, TeamName, WLStats] { team =>
-    DbStore.load[IO](db).map(_.toSet).map(WLStats.fromResults).map(_.getOrElse(team, WLStats.zero))
+    DbStore.results[IO](db, 2018).map(_.toSet).map(WLStats.fromResults).map(_.getOrElse(team, WLStats.zero))
   }
 
   private val setResultVisible = Kleisli[IO, Long, Unit] { id =>
     DbStore.setVisible[IO](db, id)
   }
 }
+

@@ -8,7 +8,7 @@ import org.http4s.{EntityEncoder, Headers, Request, Response, Status, Uri}
 
 object http {
   implicit final class BodyOps[A](private val body: A) extends AnyVal {
-    def ok[F[_]: Monad](implicit ev: EntityEncoder[F, A]): Response[F] = Response[F]().withEntity(body)
+    def ok[F[_]](implicit ev: EntityEncoder[F, A]): Response[F] = Response[F]().withEntity(body)
     def seeOther[F[_]: Monad](implicit ev: A =:= Uri): F[Response[F]] = Applicative[F].pure(Response[F](status = Status.SeeOther, headers = Headers(Location(body))))
   }
 

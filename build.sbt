@@ -1,8 +1,10 @@
 addCompilerPlugin("org.spire-math" %% "kind-projector" % "0.9.9")
+addCompilerPlugin(MetalsPlugin.semanticdbModule)
 
 ThisBuild / scalaVersion     := "2.12.8"
 ThisBuild / version          := "0.1.0-SNAPSHOT"
 ThisBuild / organization     := "lambdas"
+ThisBuild / scapegoatVersion := "1.3.8"
 
 val catsVersion = "1.6.0"
 val http4sVersion = "0.20.0-M7"
@@ -14,6 +16,7 @@ lazy val root = (project in file("."))
   .settings(
     name := "bball-server",
     scalacOptions ++= Seq(
+      "-Yrangepos",
       "-Ypartial-unification",
       "-language:higherKinds",
       "-Xfatal-warnings",

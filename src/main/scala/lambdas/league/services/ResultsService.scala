@@ -16,7 +16,7 @@ import org.http4s.implicits._
 object ResultsService {
 
   def apply[F[_]: Sync](getResults: Kleisli[F, Unit, Seq[GameResult]],
-                         setResultVisible: Kleisli[F, Long, Unit]): Kleisli[OptionT[F, ?], Request[F], Response[F]] =
+                        setResultVisible: Kleisli[F, Long, Unit]): Kleisli[OptionT[F, ?], Request[F], Response[F]] =
     HttpRoutes.of[F] {
       case req @ GET -> Root if req.acceptsJson => results(getResults, _.asJson)
       case GET -> Root / "results" => results(getResults, V.html.results(_))
