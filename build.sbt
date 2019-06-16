@@ -19,6 +19,7 @@ lazy val root = (project in file("."))
       "-Yrangepos",
       "-Ypartial-unification",
       "-language:higherKinds",
+      "-language:implicitConversions",
       "-Xfatal-warnings",
       "-deprecation",
       "-unchecked",
