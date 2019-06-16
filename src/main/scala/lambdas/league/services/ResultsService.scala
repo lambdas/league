@@ -24,13 +24,13 @@ object ResultsService {
     }
 
   def results[F[_]: Monad, A: EntityEncoder[F, ?]](getResults: Kleisli[F, Unit, Seq[GameResult]],
-                                                   render: Seq[GameResult] => A): F[Response[F]] = {
+                                                   render: Seq[GameResult] => A): F[Response[F]] =
     getResults
       .map(render(_).ok[F])
       .run(())
-  }
 
-  def show[F[_]: Monad](setResultVisible: Kleisli[F, Long, Unit], resultId: Long): F[Response[F]] = {
-    setResultVisible.run(resultId).flatMap { _ => Uri.unsafeFromString("/results").seeOther }
-  }
+  def show[F[_]: Monad](setResultVisible: Kleisli[F, Long, Unit], resultId: Long): F[Response[F]] =
+    setResultVisible
+      .run(resultId)
+      .flatMap(_ => Uri.unsafeFromString("/results").seeOther)
 }

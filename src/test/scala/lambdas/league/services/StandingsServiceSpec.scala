@@ -46,9 +46,9 @@ class StandingsServiceSpec extends FlatSpec with Matchers {
   }
 
   private val getTeams = Kleisli[Id, Unit, List[Team]](_ => List(team("ATL"), team("MIA")))
-  private val getWLStats = Kleisli[Id, TeamName, WLStats] {
-    case "ATL" => WLStats(1, 2, 3)
-    case "MIA" => WLStats(4, 5, 6)
-    case _ => WLStats.zero
+  private val getWLStats = Kleisli[Id, Unit, List[WLStats]] { _ =>
+    List(
+      WLStats("ATL", 1, 2, 3),
+      WLStats("MIA", 4, 5, 6))
   }
 }

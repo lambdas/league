@@ -11,7 +11,7 @@ import cats.instances.list._
 import cats.syntax.apply._
 import cats.syntax.functor._
 import cats.syntax.traverse._
-import lambdas.league.models.{GameResult, Team, TeamName, WLStats}
+import lambdas.league.models.{GameResult, GameType, Team, TeamCode, TeamName, WLStats}
 import lambdas.league.scraper.Scraper
 import lambdas.league.store.DbStore
 import lambdas.league.utils.http._
@@ -49,13 +49,15 @@ object Server extends IOApp {
 
   private def initStats: IO[Unit] = {
     for {
-      now <- IO(LocalDate.now)
       lastDate <- DbStore.lastDate[IO](db).map(_.getOrElse(LocalDate.of(2018, 10, 16)))
-      updateDates = (0L to ChronoUnit.DAYS.between(lastDate, now.minusDays(1))).toList.map(lastDate.plusDays)
+      seasonEnd = LocalDate.of(2019, 4, 10)
+      updateDates = (0L to ChronoUnit.DAYS.between(lastDate, seasonEnd)).toList.map(lastDate.plusDays)
       _ <- IO(println(s"Updating $updateDates"))
       _ <- updateDates.traverse { d =>
         BlazeClientBuilder[IO](global).resource.use { client =>
-          Scraper.scoreboard(client, d).flatMap { s => s.traverse(DbStore.saveResult[IO](db, _)) }
+          Scraper.scoreboard(client, d).flatMap { s => 
+            s.traverse(r => DbStore.saveResult[IO](db, store.GameResult.fromScraper(r, 2018, GameType.Regular))) 
+          }
         }
       }
     } yield ()
@@ -66,15 +68,15 @@ object Server extends IOApp {
   }
 
   private val getResults = Kleisli[IO, Unit, Seq[GameResult]] { _ =>
-    DbStore.results[IO](db, 2018).map(_.sortWith { case (a, b) => a.date.isAfter(b.date) })
+    DbStore.results[IO](db, 1, 2018).map(_.sortWith { case (a, b) => a.date.isAfter(b.date) })
   }
 
-  private val getWLStats = Kleisli[IO, TeamName, WLStats] { team =>
-    DbStore.results[IO](db, 2018).map(_.toSet).map(WLStats.fromResults).map(_.getOrElse(team, WLStats.zero))
+  private val getWLStats = Kleisli[IO, Unit, List[WLStats]] { team =>
+    DbStore.wlStats[IO](db, 1, 2018)
   }
 
-  private val setResultVisible = Kleisli[IO, Long, Unit] { id =>
-    DbStore.setVisible[IO](db, id)
+  private val setResultVisible = Kleisli[IO, Long, Unit] { resultId =>
+    DbStore.setVisible[IO](db, 1, resultId)
   }
 }
 

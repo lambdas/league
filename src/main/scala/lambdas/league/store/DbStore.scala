@@ -7,43 +7,91 @@ import anorm.Macro.ColumnNaming
 import anorm.SqlParser._
 import anorm._
 import cats.effect.{Resource, Sync}
-import lambdas.league.models.{GameResult, Team, Season}
+import lambdas.league.models
+import lambdas.league.models.{Team, TeamCode, Season, WLStats}
 
 object DbStore {
 
-  private val parser = Macro.namedParser[GameResult](ColumnNaming.SnakeCase)
-  private val teamParser = Macro.namedParser[Team](ColumnNaming.SnakeCase)
-  private val seasonParser = Macro.namedParser[Season](ColumnNaming.SnakeCase)
+  private[this] val gameResultsParser = Macro.namedParser[models.GameResult](ColumnNaming.SnakeCase)
+  private[this] val teamParser = Macro.namedParser[Team](ColumnNaming.SnakeCase)
+  private[this] val seasonParser = Macro.namedParser[Season](ColumnNaming.SnakeCase)
+  private[this] val wlStatsParser = Macro.namedParser[WLStats](ColumnNaming.SnakeCase)
 
   def saveResult[F[_]: Sync](db: Resource[F, Connection], r: GameResult): F[Unit] = db.use { conn =>
     Sync[F].delay {
       SQL"""
             insert into results (
+              season,
               date,
+              game_type,
               road_team,
               home_team,
               road_score,
-              home_score,
-              visible
-            ) values (
+              home_score
+            )
+            values (
+              ${r.season},
               ${r.date},
+              ${r.gameType}::game_type,
               ${r.roadTeam},
               ${r.homeTeam},
               ${r.roadScore},
-              ${r.homeScore},
-              ${r.visible}) on conflict do nothing
+              ${r.homeScore}
+            )
+            on conflict do nothing
         """.executeInsert()(conn)
     }
   }
 
-  def results[F[_]: Sync](db: Resource[F, Connection], seasonStartYear: Int): F[List[GameResult]] = db.use { conn =>
+  def results[F[_]: Sync](db: Resource[F, Connection], userId: Long, season: Int): F[List[models.GameResult]] = db.use { conn =>
     Sync[F].delay {
       SQL"""
-            select * from results 
-            where date >= (select regular_season_start from seasons where start_year = $seasonStartYear) 
-            and   date <= (select regular_season_end   from seasons where start_year = $seasonStartYear) 
-            order by date desc, road_team asc
-         """.as(parser.*)(conn)
+            select id, season, date, game_type, road_team, home_team, road_score, home_score, coalesce(visible, false) as visible
+            from results 
+            left outer join user_results
+            on (
+                  results.id     = user_results.result_id 
+              and results.season = $season 
+              and user_id        = $userId
+            )
+            order by 
+              date      desc, 
+              road_team asc
+         """.as(gameResultsParser.*)(conn)
+    }
+  }
+
+  def wlStats[F[_]: Sync](db: Resource[F, Connection], userId: Long, season: Int): F[List[WLStats]] = db.use { conn =>
+    Sync[F].delay {
+      SQL"""
+            with refined_results as (
+              select road_team, home_team, road_score, home_score, coalesce(visible, false) as visible
+              from results 
+              left outer join user_results 
+              on (
+                    results.id           = user_results.result_id 
+                and results.season       = $season 
+                and user_results.user_id = $userId
+              )
+            )
+            select team_code, sum(win) as n_wins, sum(loss) as n_losses, sum(hidden) as n_hidden from (
+              select 
+                road_team                                                       as team_code,
+                case when road_score > home_score and visible then 1 else 0 end as win,
+                case when road_score < home_score and visible then 1 else 0 end as loss,
+                case when visible                             then 0 else 1 end as hidden
+              from refined_results
+
+              union all
+
+              select 
+                home_team                                                       as team_code,
+                case when road_score < home_score and visible then 1 else 0 end as win,
+                case when road_score > home_score and visible then 1 else 0 end as loss,
+                case when visible                             then 0 else 1 end as hidden
+              from refined_results
+            ) x group by team_code
+         """.as(wlStatsParser.*)(conn)
     }
   }
 
@@ -53,9 +101,21 @@ object DbStore {
     }
   }
 
-  def setVisible[F[_]: Sync](db: Resource[F, Connection], id: Long): F[Unit] = db.use { conn =>
+  def setVisible[F[_]: Sync](db: Resource[F, Connection], userId: Long, resultId: Long): F[Unit] = db.use { conn =>
     Sync[F].delay {
-      SQL"update results set visible=true where id=$id".executeUpdate()(conn)
+      SQL"""
+            insert into user_results (
+              user_id, 
+              result_id, 
+              visible
+            )
+            values (
+              $userId,
+              $resultId,
+              true
+            )
+            on conflict(user_id, result_id) do update set visible = true
+         """.executeUpdate()(conn)
     }
   }
 

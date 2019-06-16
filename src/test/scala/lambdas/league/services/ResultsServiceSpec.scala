@@ -6,7 +6,7 @@ import cats.Id
 import cats.data.Kleisli
 import io.circe.Json
 import io.circe.literal._
-import lambdas.league.models.GameResult
+import lambdas.league.models.{GameResult, GameType}
 import lambdas.league.testutils._
 import org.http4s.MediaType.application.json
 import org.http4s.MediaType.text.html
@@ -65,9 +65,9 @@ class ResultsServiceSpec extends FlatSpec with Matchers {
 
   private val getResults = Kleisli[Id, Unit, Seq[GameResult]] { _ =>
     Seq(
-      GameResult(1, "Atlanta Hawks", "Miami Heat",     100, 110, LocalDate.of(2019, 1, 1), true),
-      GameResult(2, "Atlanta Hawks", "Boston Celtics", 105, 115, LocalDate.of(2019, 1, 2), true),
-      GameResult(3, "Atlanta Hawks", "Denver Nuggets", 120, 125, LocalDate.of(2019, 1, 2), false))
+      GameResult(1, LocalDate.of(2019, 1, 1), "Atlanta Hawks", "Miami Heat",     100, 110, true),
+      GameResult(2, LocalDate.of(2019, 1, 2), "Atlanta Hawks", "Boston Celtics", 105, 115, true),
+      GameResult(3, LocalDate.of(2019, 1, 2), "Atlanta Hawks", "Denver Nuggets", 120, 125, false))
   }
 
   private val setResultsVisible = Kleisli[Id, Long, Unit] { _ => }

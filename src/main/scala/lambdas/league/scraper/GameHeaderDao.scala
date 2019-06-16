@@ -6,7 +6,10 @@ import cats.instances.either._
 import cats.syntax.apply._
 import io.circe.{Decoder, HCursor}
 
-private[scraper] final case class GameHeaderDao(gameSeq: Int, date: LocalDate, roadTeamId: Long, homeTeamId: Long)
+private[scraper] final case class GameHeaderDao(gameSeq: Int, 
+                                                date: LocalDate, 
+                                                roadTeamId: Long, 
+                                                homeTeamId: Long)
 
 private[scraper] object GameHeaderDao {
   implicit val jsonDecoder: Decoder[GameHeaderDao] = { c: HCursor =>
